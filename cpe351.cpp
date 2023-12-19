@@ -7,9 +7,7 @@
 #include <string>
 using namespace std;
 struct Process {
-    int burst_time;
-    int arrival_time;
-    int priority;
+    int burst_time, arrival_time, priority;
 };
 struct Scheduler {
     string scheduling_method;
@@ -19,6 +17,51 @@ struct Scheduler {
 
 int main(int argc, char* argv[]) {
     //THE OUTPUT FILE SHOULD BE HANDLED BEFORE THE MENU IS LOADED
+    //I SHOULD HAVE A CHECK FOR -f AND -O
+    /*if(argc != 5){
+        cout<<"ERROR!!! For the program to function correctly type ./cpe351 -f input.txt -o output.txt"<<endl;
+        return 1;
+    }*/
+    int count = 0, index = 0;
+    fstream inputFile;
+    inputFile.open("C:\\Users\\david\\CLionProjects\\CMPE35122102897\\input.txt",ios::in);
+    if(inputFile.is_open()){
+        cout<<"file opened"<<endl;
+        string line, numberOfLines;
+        while (getline(inputFile, numberOfLines)){
+            count++;
+        }
+        inputFile.clear();
+        inputFile.seekg(ios::beg);
+        struct Process myProcesses[count];
+        while (getline(inputFile, line)){
+            cout<<line<<endl;
+            cout<<"Process "<< index + 1<<"\n";
+            for (int i = 0; i < line.length(); i++) {
+                char current_Character = line[i];
+                if(i==0){
+                    //BURST TIME
+                    myProcesses[index].burst_time = stoi(string(1, current_Character));
+                    cout<<"burst time: "<<myProcesses[index].burst_time<<endl;
+                }
+                if(i==2){
+                    //ARRIVAL TIME
+                    myProcesses[index].arrival_time = stoi(string(1,current_Character));
+                    cout<<"arrival time: "<<myProcesses[index].arrival_time<<endl;
+                }
+                if(i==4){
+                    //PRIORITY
+                    myProcesses[index].priority = stoi(string(1,current_Character));
+                    cout<<"Priority: "<<myProcesses[index].priority<<endl;
+                }
+            }
+            index++;
+        }
+    }else{
+        cout<<"Could not open the file"<<endl;
+        return 1;
+    }
+
 
 
     int choice_simulator, method_choice, time_quantum;
