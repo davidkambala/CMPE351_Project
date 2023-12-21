@@ -12,11 +12,88 @@ struct Process {
 };
 int count;
 int totalBurstTime;
-/*struct LinearQueue {
-    int front;
-    int rear;
-    int items[count];
-};*/
+struct node {
+    int data;
+    struct node *next;
+};
+struct node * createNode (int item)
+{
+    struct node *temp;
+    temp = (struct node* ) malloc(sizeof(node));
+    temp->data = item;
+    temp->next = nullptr;
+    return temp;
+}
+int isEmpty (struct node *header)
+{
+    if(header == nullptr)
+        return 1;
+    else
+        return 0;
+}
+struct node* insert_Front(struct node *header, int data)
+{
+    struct node *temp = createNode(data);
+    temp->next = header;
+    header = temp;
+    return header;
+}
+struct node* insert_Back(struct node *header, int data)
+{
+    struct node *temp = createNode(data);
+    struct node *headertemp;
+    if(header == nullptr)
+    {
+        header = temp;
+        return header;
+    }
+    headertemp = header;
+    while(headertemp->next != nullptr)
+        headertemp = headertemp->next;
+    headertemp->next = temp;
+    return header;
+}
+void insertAfter (struct node *afternode, int data)
+{
+    struct node *temp = createNode(data);
+    temp->next = afternode->next;
+    afternode->next = temp;
+}
+void display(struct node *header)
+{
+    if(header == nullptr)
+        cout<<"List is empty!!!!!!"<<endl;
+    struct node *temp= header;
+    while(temp != nullptr)
+    {
+        cout<<temp->data<<"-->";
+        temp = temp->next;
+    }
+    cout<<endl;
+}
+struct node* delete_front(struct node *header)
+{
+    struct node *temp;
+    if(header == nullptr)
+        return header;
+    temp = header;
+    header = header->next;
+    free(temp);
+    return header;
+}
+struct node* delete_back(struct node *header)
+{
+    struct node *temp, *headertemp;
+    if(header == nullptr)
+        return header;
+    headertemp = header;
+    while(headertemp->next->next != nullptr)
+        headertemp = headertemp->next;
+    temp = headertemp->next;
+    headertemp->next = nullptr;
+    free(temp);
+    return header;
+}
 
 void FCFS_Scheduler();
 
@@ -138,43 +215,54 @@ int main(int argc, char* argv[]) {
                 }
                 break;
             case 3:
-                //SHOW RESULT I should put first come out side of the !preemptive
-                if (!preemptive){
-                    //Non Preemptive scheduling
-                    if(method_choice == 1){
-                        cout<<"Scheduling Method: First Come First Served"<<endl;
-                        current = 0;
-                        int elapsed_Time = totalBurstTime;
-                        int sched_queue_burst[count];
-                        for (int i = 0; i < count; i++)
-                            sched_queue_burst[i] = myProcesses[i].burst_time;
-                        while (elapsed_Time != 0){
-                            if(sched_queue_burst[current] == 0){
-                                current++;
-                            }
-                            for (int i = current+1; i < count; i++) {
-                                myProcesses[i].wait_time++;
-                            }
-                            sched_queue_burst[current]--;
-                            elapsed_Time--;
+                //SHOW RESULT
+                if(method_choice == 1){
+                    cout<<"Scheduling Method: First Come First Served"<<endl;
+                    current = 0;
+                    int elapsed_Time = totalBurstTime;
+                    int sched_queue_burst[count];
+                    for (int i = 0; i < count; i++)
+                        sched_queue_burst[i] = myProcesses[i].burst_time;
+                    while (elapsed_Time != 0){
+                        if(sched_queue_burst[current] == 0){
+                            current++;
                         }
-                        for (int i = 0; i < count; i++)
-                            myProcesses[i].wait_time -= myProcesses[i].arrival_time;
-                        for (int i = 0; i < count; i++)
-                            total_wait_time += myProcesses[i].wait_time;
-                        avg_wait_time = total_wait_time/count;
-                        cout<<"Process Waiting Times:"<<endl;
-                        for (int i = 0; i < count; i++){
-                            cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
+                        for (int i = current+1; i < count; i++) {
+                            myProcesses[i].wait_time++;
                         }
-                        cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
+                        sched_queue_burst[current]--;
+                        elapsed_Time--;
                     }
-                    else if (method_choice == 2){
+                    for (int i = 0; i < count; i++)
+                        myProcesses[i].wait_time -= myProcesses[i].arrival_time;
+                    for (int i = 0; i < count; i++)
+                        total_wait_time += myProcesses[i].wait_time;
+                    avg_wait_time = total_wait_time/count;
+                    cout<<"Process Waiting Times:"<<endl;
+                    for (int i = 0; i < count; i++){
+                        cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
+                    }
+                    cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
+                }
+                else if (!preemptive){
+                    //Non Preemptive scheduling
+
+                    if (method_choice == 2){
                         //SJFS
+                    } else if (method_choice == 3){
+                        //Priority scheduling
+                    } else if (method_choice == 4){
+                        //Round Robin
                     }
                 } else{
                     //Preemptive Scheduling
-
+                    if (method_choice == 2){
+                        //SJFS
+                    } else if (method_choice == 3){
+                        //Priority scheduling
+                    } else if (method_choice == 4){
+                        //Round Robin
+                    }
                 }
                 break;
             default:
@@ -192,8 +280,4 @@ int main(int argc, char* argv[]) {
         cin>>choice_simulator;
     }
     return 0;
-}
-
-void FCFS_Scheduler(){
-    
 }
