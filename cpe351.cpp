@@ -12,88 +12,11 @@ struct Process {
 };
 int count;
 int totalBurstTime;
-struct node {
-    int data;
-    struct node *next;
-};
-struct node * createNode (int item)
-{
-    struct node *temp;
-    temp = (struct node* ) malloc(sizeof(node));
-    temp->data = item;
-    temp->next = nullptr;
-    return temp;
-}
-int isEmpty (struct node *header)
-{
-    if(header == nullptr)
-        return 1;
-    else
-        return 0;
-}
-struct node* insert_Front(struct node *header, int data)
-{
-    struct node *temp = createNode(data);
-    temp->next = header;
-    header = temp;
-    return header;
-}
-struct node* insert_Back(struct node *header, int data)
-{
-    struct node *temp = createNode(data);
-    struct node *headertemp;
-    if(header == nullptr)
-    {
-        header = temp;
-        return header;
-    }
-    headertemp = header;
-    while(headertemp->next != nullptr)
-        headertemp = headertemp->next;
-    headertemp->next = temp;
-    return header;
-}
-void insertAfter (struct node *afternode, int data)
-{
-    struct node *temp = createNode(data);
-    temp->next = afternode->next;
-    afternode->next = temp;
-}
-void display(struct node *header)
-{
-    if(header == nullptr)
-        cout<<"List is empty!!!!!!"<<endl;
-    struct node *temp= header;
-    while(temp != nullptr)
-    {
-        cout<<temp->data<<"-->";
-        temp = temp->next;
-    }
-    cout<<endl;
-}
-struct node* delete_front(struct node *header)
-{
-    struct node *temp;
-    if(header == nullptr)
-        return header;
-    temp = header;
-    header = header->next;
-    free(temp);
-    return header;
-}
-struct node* delete_back(struct node *header)
-{
-    struct node *temp, *headertemp;
-    if(header == nullptr)
-        return header;
-    headertemp = header;
-    while(headertemp->next->next != nullptr)
-        headertemp = headertemp->next;
-    temp = headertemp->next;
-    headertemp->next = nullptr;
-    free(temp);
-    return header;
-}
+/*struct LinearQueue {
+    int front;
+    int rear;
+    int items[count];
+};*/
 
 void FCFS_Scheduler();
 
@@ -215,7 +138,7 @@ int main(int argc, char* argv[]) {
                 }
                 break;
             case 3:
-                //SHOW RESULT
+                //SHOW RESULT I should put first come out side of the !preemptive
                 if(method_choice == 1){
                     cout<<"Scheduling Method: First Come First Served"<<endl;
                     current = 0;
@@ -246,22 +169,21 @@ int main(int argc, char* argv[]) {
                 }
                 else if (!preemptive){
                     //Non Preemptive scheduling
-
                     if (method_choice == 2){
                         //SJFS
                     } else if (method_choice == 3){
-                        //Priority scheduling
+                        //PRIORITY
                     } else if (method_choice == 4){
-                        //Round Robin
+                        //ROUND ROBIN
                     }
                 } else{
                     //Preemptive Scheduling
                     if (method_choice == 2){
                         //SJFS
                     } else if (method_choice == 3){
-                        //Priority scheduling
+                        //PRIORITY
                     } else if (method_choice == 4){
-                        //Round Robin
+                        //ROUND ROBIN
                     }
                 }
                 break;
@@ -280,4 +202,8 @@ int main(int argc, char* argv[]) {
         cin>>choice_simulator;
     }
     return 0;
+}
+
+void FCFS_Scheduler(){
+    
 }
