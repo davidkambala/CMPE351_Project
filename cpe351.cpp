@@ -4,14 +4,16 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#define QUEUE_SIZE 100
+#define QUEUE_SIZE 10
 using namespace std;
 struct Process {
     int burst_time, arrival_time, priority;
     int wait_time = 0;
+    int stop_time;
 };
-int count;
-int totalBurstTime;
+
+int total_wait_time = 0, current;
+double avg_wait_time;
 struct CircularQueue {
     int front;
     int rear;
@@ -23,6 +25,10 @@ void insert(struct CircularQueue *c, int x);
 int remove(struct CircularQueue *c);
 int isQueueFull(struct CircularQueue *c);
 int isQueueEmpty(struct CircularQueue *c);
+void printQueue(struct CircularQueue *c);
+
+void first_come(Process myProcesses[], int totalBurstTime, int count);
+void round_Robin1 (Process myProcesses[], int processesCount, int time_quantum);
 
 int main(int argc, char* argv[]) {
     //THE OUTPUT FILE SHOULD BE HANDLED BEFORE THE MENU IS LOADED
@@ -31,7 +37,7 @@ int main(int argc, char* argv[]) {
         cout<<"ERROR!!! For the program to function correctly type ./cpe351 -f input.txt -o output.txt"<<endl;
         return 1;
     }*/
-    int index = 0;
+    int index = 0, count, totalBurstTime = 0;
     fstream inputFile;
     inputFile.open("C:\\Users\\david\\CLionProjects\\CMPE35122102897\\input.txt",ios::in);
     if(inputFile.is_open()){
@@ -78,8 +84,7 @@ int main(int argc, char* argv[]) {
     }
     cout<<"Total burst time: "<<totalBurstTime<<endl;
 
-    int choice_simulator, method_choice = 1, time_quantum, current, burst, total_wait_time = 0;
-    double avg_wait_time;
+    int choice_simulator, method_choice = 4, time_quantum = 2, burst;
     bool preemptive = false;
     char preemptive_choice;
     cout<<"CPU Scheduler Simulator\n";
@@ -145,31 +150,11 @@ int main(int argc, char* argv[]) {
                 //SHOW RESULT I should put first come out side of the !preemptive
                 if(method_choice == 1){
                     cout<<"Scheduling Method: First Come First Served"<<endl;
-                    current = 0;
-                    int elapsed_Time = totalBurstTime;
-                    int sched_queue_burst[count];
-                    for (int i = 0; i < count; i++)
-                        sched_queue_burst[i] = myProcesses[i].burst_time;
-                    while (elapsed_Time != 0){
-                        if(sched_queue_burst[current] == 0){
-                            current++;
-                        }
-                        for (int i = current+1; i < count; i++) {
-                            myProcesses[i].wait_time++;
-                        }
-                        sched_queue_burst[current]--;
-                        elapsed_Time--;
-                    }
-                    for (int i = 0; i < count; i++)
-                        myProcesses[i].wait_time -= myProcesses[i].arrival_time;
-                    for (int i = 0; i < count; i++)
-                        total_wait_time += myProcesses[i].wait_time;
-                    avg_wait_time = total_wait_time/count;
-                    cout<<"Process Waiting Times:"<<endl;
-                    for (int i = 0; i < count; i++){
-                        cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
-                    }
-                    cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
+                    first_come(myProcesses, totalBurstTime, count);
+                }
+                else if (method_choice == 4){
+                    //ROUND ROBIN
+                    round_Robin1(myProcesses, count, time_quantum);
                 }
                 else if (!preemptive){
                     //Non Preemptive scheduling
@@ -177,8 +162,6 @@ int main(int argc, char* argv[]) {
                         //SJFS
                     } else if (method_choice == 3){
                         //PRIORITY
-                    } else if (method_choice == 4){
-                        //ROUND ROBIN
                     }
                 } else{
                     //Preemptive Scheduling
@@ -186,8 +169,6 @@ int main(int argc, char* argv[]) {
                         //SJFS
                     } else if (method_choice == 3){
                         //PRIORITY
-                    } else if (method_choice == 4){
-                        //ROUND ROBIN
                     }
                 }
                 break;
@@ -249,4 +230,91 @@ int isQueueEmpty(struct CircularQueue *c){
         return 1;
     else
         return 0;
+}
+void printQueue(struct CircularQueue *c){
+    int x;
+    struct CircularQueue temp;
+    initializeQueue(&temp);
+    while (!isQueueEmpty(c)){
+        x = remove(c);
+        cout<<x<<endl;
+        insert(&temp, x);
+    }
+    while (!isQueueEmpty(&temp)){
+        x = remove(&temp);
+        insert(c, x);
+    }
+}
+void first_come(Process myProcesses[], int totalBurstTime, int count){
+    current = 0;
+    total_wait_time = 0;
+    int elapsed_Time = totalBurstTime;
+    int sched_queue_burst[count];
+    for (int i = 0; i < count; i++)
+        sched_queue_burst[i] = myProcesses[i].burst_time;
+    while (elapsed_Time != 0){
+        if(sched_queue_burst[current] == 0){
+            current++;
+        }
+        for (int i = current+1; i < count; i++) {
+            myProcesses[i].wait_time++;
+        }
+        sched_queue_burst[current]--;
+        elapsed_Time--;
+    }
+    for (int i = 0; i < count; i++)
+        myProcesses[i].wait_time -= myProcesses[i].arrival_time;
+    for (int i = 0; i < count; i++)
+        total_wait_time += myProcesses[i].wait_time;
+    avg_wait_time = total_wait_time/count;
+    cout<<"Process Waiting Times:"<<endl;
+    for (int i = 0; i < count; i++){
+        cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
+    }
+    cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
+}
+
+void round_Robin1 (Process myProcesses[], int processesCount, int time_quantum){
+    struct CircularQueue processes_Queue;
+    initializeQueue(&processes_Queue);
+    int currentTime = 0;
+    total_wait_time = 0;
+    int currentProcessBurstTime;
+    int time_executed;
+    int flag = 0;
+    for (int i = 0; i < processesCount; i++) {
+        insert(&processes_Queue, myProcesses[i].burst_time);
+    }
+    printQueue(&processes_Queue);
+    while (!isQueueEmpty(&processes_Queue)){
+        if (flag == processesCount)
+            flag = 0;
+        currentProcessBurstTime = remove(&processes_Queue);
+        if (time_quantum < currentProcessBurstTime)
+            time_executed = time_quantum;
+        else
+            time_executed = currentProcessBurstTime;
+        currentProcessBurstTime -= time_executed;
+        currentTime += time_executed;
+        for (int i = 0; i < processesCount; i++) {
+            myProcesses[i].wait_time += time_executed;
+        }
+        myProcesses[flag].wait_time -= time_executed;
+        if (currentProcessBurstTime > 0)
+            insert(&processes_Queue, currentProcessBurstTime);
+        else
+            myProcesses[flag].stop_time = myProcesses[flag].wait_time;
+        flag++;
+        cout<<"*";
+    }
+    for (int i = 0; i < processesCount; i++)
+        myProcesses[i].wait_time = myProcesses[i].stop_time - myProcesses[i].arrival_time;
+    for (int i = 0; i < processesCount; i++)
+        total_wait_time += myProcesses[i].wait_time;
+    avg_wait_time = total_wait_time/processesCount;
+    cout<<"Process Waiting Times:"<<endl;
+    for (int i = 0; i < processesCount; i++){
+        cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
+    }
+    cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
 }
