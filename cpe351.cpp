@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <cctype>
+#define QUEUE_SIZE 100
 using namespace std;
 struct Process {
     int burst_time, arrival_time, priority;
@@ -12,13 +12,17 @@ struct Process {
 };
 int count;
 int totalBurstTime;
-/*struct LinearQueue {
+struct CircularQueue {
     int front;
     int rear;
-    int items[count];
-};*/
+    int items[QUEUE_SIZE];
+};
 
-void FCFS_Scheduler();
+void initializeQueue(struct CircularQueue *c);
+void insert(struct CircularQueue *c, int x);
+int remove(struct CircularQueue *c);
+int isQueueFull(struct CircularQueue *c);
+int isQueueEmpty(struct CircularQueue *c);
 
 int main(int argc, char* argv[]) {
     //THE OUTPUT FILE SHOULD BE HANDLED BEFORE THE MENU IS LOADED
@@ -201,9 +205,48 @@ int main(int argc, char* argv[]) {
         cout<<"Option > ";
         cin>>choice_simulator;
     }
+    inputFile.close();
     return 0;
 }
 
-void FCFS_Scheduler(){
-    
+void initializeQueue(struct CircularQueue *c){
+    c->front = c->rear = QUEUE_SIZE-1;
+}
+void insert(struct CircularQueue *c, int x){
+    if (c->rear == QUEUE_SIZE-1)
+        c->rear = 0;
+    else
+        (c->rear)++;
+    if (isQueueFull(c)){
+        cout<<"Overflow queue is full"<<endl;
+        exit(1);
+    }
+    else
+        c->items[c->rear] = x;
+}
+int remove(struct CircularQueue *c){
+    if (isQueueEmpty(c)){
+        cout<<"Underflow: Queue is empty"<<endl;
+        exit(1);
+    }
+    else{
+        if (c->front == QUEUE_SIZE-1)
+            c->front = 0;
+        else
+            (c->front)++;
+        int x = c->items[c->front];
+        return x;
+    }
+}
+int isQueueFull(struct CircularQueue *c){
+    if (c->front == c->rear)
+        return 1;
+    else
+        return 0;
+}
+int isQueueEmpty(struct CircularQueue *c){
+    if (c->front == c->rear)
+        return 1;
+    else
+        return 0;
 }
