@@ -27,13 +27,15 @@ int remove(struct CircularQueue *c);
 int isQueueFull(struct CircularQueue *c);
 int isQueueEmpty(struct CircularQueue *c);
 void printQueue(struct CircularQueue *c);
-void bubbleSort_burstTime(Process myProcesses[], int processesCount);
+void bubbleSort_burstTime(Process myProcesses[], int processesCount, int currentTime, int num);
 void bubbleSort_processNo(Process myProcesses[], int processesCount);
+void bubbleSort_priority(Process myProcesses[], int processesCount, int currentTime, int num);
 void swap(Process& a, Process& b);
 
 void first_come(Process myProcesses[], int totalBurstTime, int processesCount);
 void round_Robin (Process myProcesses[], int processesCount, int time_quantum);
 void shortest_job_first_nonPreemptive(Process myProcesses[], int processesCount);
+void priority_nonPreemptive(Process myProcesses[], int processesCount);
 
 int main(int argc, char* argv[]) {
     //THE OUTPUT FILE SHOULD BE HANDLED BEFORE THE MENU IS LOADED
@@ -171,6 +173,8 @@ int main(int argc, char* argv[]) {
                         shortest_job_first_nonPreemptive(myProcesses, count);
                     } else if (method_choice == 3){
                         //PRIORITY
+                        cout<<"Scheduling Method: Priority Scheduling - Non-Preemptive"<<endl;
+                        priority_nonPreemptive(myProcesses, count);
                     }
                 } else{
                     //Preemptive Scheduling
@@ -263,12 +267,13 @@ void swap(Process& a, Process& b){
     a = b;
     b = temp;
 }
-void bubbleSort_burstTime(Process myProcesses[], int processesCount){
-    //I should make more test on that bubble sort with different values
+void bubbleSort_burstTime(Process myProcesses[], int processesCount, int currentTime, int num){
     for (int i = 0; i < processesCount-1; i++) {
-        for (int j = 1; j < processesCount - i - 1; j++) {
-            if ((myProcesses[j].burst_time > myProcesses[j+1].burst_time)){
-                swap(myProcesses[j], myProcesses[j+1]);
+        for (int j = num + 1; j < processesCount - i - 1; j++) {
+            if (myProcesses[j+1].arrival_time <= currentTime){
+                if ((myProcesses[j].burst_time > myProcesses[j+1].burst_time)){
+                    swap(myProcesses[j], myProcesses[j+1]);
+                }
             }
         }
     }
@@ -287,7 +292,16 @@ void bubbleSort_processNo(Process myProcesses[], int processesCount){
         }
     }
 }
-
+void bubbleSort_priority(Process myProcesses[], int processesCount, int currentTime, int num){
+    for (int i = 0; i < processesCount-1; i++) {
+        for (int j = num + 1; j < processesCount-i-1; j++) {
+            if ((myProcesses[j].arrival_time <= currentTime) && myProcesses[j+1].arrival_time <= currentTime)
+                if (myProcesses[j].priority > myProcesses[j+1].priority){
+                    swap(myProcesses[j], myProcesses[j+1]);
+                }
+        }
+    }
+}
 
 void first_come(Process myProcesses[], int totalBurstTime, int processesCount){
     current = 0;
@@ -319,7 +333,7 @@ void first_come(Process myProcesses[], int totalBurstTime, int processesCount){
 }
 
 void round_Robin (Process myProcesses[], int processesCount, int time_quantum){
-    cout<<"Scheduling Method: Round Robin Scheduling - time_quantum = " + time_quantum<<endl;
+    cout<<"Scheduling Method: Round Robin Scheduling - time_quantum = "<< time_quantum<<endl;
     struct CircularQueue processes_Queue;
     initializeQueue(&processes_Queue);
     int currentTime = 0;
@@ -367,13 +381,9 @@ void shortest_job_first_nonPreemptive(Process myProcesses[], int processesCount)
     for (int i = 0; i < processesCount; ++i) {
         cout<<"P"<<myProcesses[i].process_no<<" ";
     }*/
-    bubbleSort_burstTime(myProcesses, processesCount);
-    /*cout<<"Order after Bubble sort: "<<endl;
-    for (int i = 0; i < processesCount; ++i) {
-        cout<<"P"<<myProcesses[i].process_no<<" ";
-    }*/
     int currentTime = 0;
     total_wait_time = 0;
+    bubbleSort_burstTime(myProcesses, processesCount, currentTime, -1);
     Process running_Process;
     for (int i = 0; i < processesCount; i++) {
         running_Process = myProcesses[i];
@@ -383,7 +393,13 @@ void shortest_job_first_nonPreemptive(Process myProcesses[], int processesCount)
                 myProcesses[j].wait_time += running_Process.burst_time;
         }
         myProcesses[i].stop_time = myProcesses[i].wait_time;
+        //do bubble sort here
+        bubbleSort_burstTime(myProcesses, processesCount, currentTime, i);
     }
+    /*cout<<"\nOrder after Bubble sort: "<<endl;
+    for (int i = 0; i < processesCount; ++i) {
+        cout<<"P"<<myProcesses[i].process_no<<" ";
+    }*/
     for (int i = 0; i < processesCount; i++)
         myProcesses[i].wait_time = myProcesses[i].stop_time - myProcesses[i].arrival_time;
     bubbleSort_processNo(myProcesses, processesCount);
@@ -396,5 +412,32 @@ void shortest_job_first_nonPreemptive(Process myProcesses[], int processesCount)
     }
     cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
 
+}
+void priority_nonPreemptive(Process myProcesses[], int processesCount){
+    int currentTime = 0;
+    bubbleSort_priority(myProcesses, processesCount, currentTime, -1);
+    total_wait_time = 0;
+    Process running_Process;
+    for (int i = 0; i < processesCount; i++) {
+        running_Process = myProcesses[i];
+        currentTime += running_Process.burst_time;
+        for (int j = 0; j < processesCount; j++) {
+            if (i != j)
+                myProcesses[j].wait_time += running_Process.burst_time;
+        }
+        myProcesses[i].stop_time = myProcesses[i].wait_time;
+        bubbleSort_priority(myProcesses, processesCount, currentTime, i);
+    }
+    for (int i = 0; i < processesCount; i++)
+        myProcesses[i].wait_time = myProcesses[i].stop_time - myProcesses[i].arrival_time;
+    bubbleSort_processNo(myProcesses, processesCount);
+    for (int i = 0; i < processesCount; i++)
+        total_wait_time += myProcesses[i].wait_time;
+    avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
+    cout<<"Process Waiting Times:"<<endl;
+    for (int i = 0; i < processesCount; i++){
+        cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
+    }
+    cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
 }
 //tag every process ie: P1 P2 P3...
