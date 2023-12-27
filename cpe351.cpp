@@ -31,10 +31,12 @@ void bubbleSort_burstTime(Process myProcesses[], int processesCount, int current
 void bubbleSort_processNo(Process myProcesses[], int processesCount);
 void bubbleSort_priority(Process myProcesses[], int processesCount, int currentTime, int num);
 void swap(Process& a, Process& b);
+int getShortestProcAvailable(Process myProcesses[], int processesCount, int currentTime);
 
 void first_come(Process myProcesses[], int totalBurstTime, int processesCount);
 void round_Robin (Process myProcesses[], int processesCount, int time_quantum);
 void shortest_job_first_nonPreemptive(Process myProcesses[], int processesCount);
+void shortest_job_first_Preemptive(Process myProcesses[], int processesCount, int totalBurstTime);
 void priority_nonPreemptive(Process myProcesses[], int processesCount);
 
 int main(int argc, char* argv[]) {
@@ -93,7 +95,7 @@ int main(int argc, char* argv[]) {
     cout<<"Total burst time: "<<totalBurstTime<<endl;
 
     int choice_simulator, method_choice = 2, time_quantum = 2, burst;
-    bool preemptive = false;
+    bool preemptive = true;
     char preemptive_choice;
     cout<<"CPU Scheduler Simulator\n";
     cout<<"1) Set Scheduling Method"<<endl;
@@ -168,20 +170,22 @@ int main(int argc, char* argv[]) {
                 else if (!preemptive){
                     //Non Preemptive scheduling
                     if (method_choice == 2){
-                        //SJFS
+                        //SJFS Non preemptive
                         cout<<"Scheduling Method: Shortest Job First - Non-Preemptive"<<endl;
                         shortest_job_first_nonPreemptive(myProcesses, count);
                     } else if (method_choice == 3){
-                        //PRIORITY
+                        //PRIORITY Non preemptive
                         cout<<"Scheduling Method: Priority Scheduling - Non-Preemptive"<<endl;
                         priority_nonPreemptive(myProcesses, count);
                     }
                 } else{
                     //Preemptive Scheduling
                     if (method_choice == 2){
-                        //SJFS
+                        //SJFS preemptive
+                        cout<<"Scheduling Method: Shortest Job First - Preemptive"<<endl;
+                        shortest_job_first_Preemptive(myProcesses, count, totalBurstTime);
                     } else if (method_choice == 3){
-                        //PRIORITY
+                        //PRIORITY preemptive
                     }
                 }
                 for (int i = 0; i < count; i++) {
@@ -302,6 +306,19 @@ void bubbleSort_priority(Process myProcesses[], int processesCount, int currentT
         }
     }
 }
+int getShortestProcAvailable(Process myProcesses[], int processesCount, int currentTime){
+    int min = 10000;
+    int min_index;
+    for (int i = 0; i < processesCount; i++) {
+        if ((myProcesses[i].arrival_time <= currentTime) && (myProcesses[i].burst_time > 0)){
+            if (myProcesses[i].burst_time < min){
+                min_index = i;
+                min = myProcesses[i].burst_time;
+            }
+        }
+    }
+    return min_index;
+}
 
 void first_come(Process myProcesses[], int totalBurstTime, int processesCount){
     current = 0;
@@ -413,6 +430,40 @@ void shortest_job_first_nonPreemptive(Process myProcesses[], int processesCount)
     cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
 
 }
+void shortest_job_first_Preemptive(Process myProcesses[], int processesCount, int totalBurstTime){
+    int currentTime = 0;
+    int completedProcesses = 0;
+    total_wait_time = 0;
+    /*bubbleSort_burstTime(myProcesses, processesCount, currentTime, -1);
+    cout<<"\nOrder after Bubble sort: "<<endl;
+    for (int i = 0; i < processesCount; ++i) {
+        cout<<"P"<<myProcesses[i].process_no<<" ";
+    }*/
+    int index = getShortestProcAvailable(myProcesses, processesCount, currentTime);
+    while (currentTime < totalBurstTime){
+        cout<<index<<endl;
+        myProcesses[index].burst_time--;
+        if (myProcesses[index].burst_time == 0){
+            myProcesses[index].stop_time = currentTime;
+        }
+        for (int i = 0; i < processesCount; i++) {
+            if ((i != index) && (myProcesses[i].arrival_time <= currentTime) && (myProcesses[i].burst_time > 0)){
+                myProcesses[i].wait_time++;
+            }
+        }
+        currentTime++;
+        index = getShortestProcAvailable(myProcesses, processesCount, currentTime);
+    }
+    for (int i = 0; i < processesCount; i++)
+        total_wait_time += myProcesses[i].wait_time;
+    avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
+    cout<<"Process Waiting Times:"<<endl;
+    for (int i = 0; i < processesCount; i++){
+        cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
+    }
+    cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
+}
+
 void priority_nonPreemptive(Process myProcesses[], int processesCount){
     int currentTime = 0;
     bubbleSort_priority(myProcesses, processesCount, currentTime, -1);
