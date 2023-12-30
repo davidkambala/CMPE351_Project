@@ -309,7 +309,7 @@ void bubbleSort_priority(Process myProcesses[], int processesCount, int currentT
 }
 int getShortestProcAvailable(Process myProcesses[], int processesCount, int currentTime){
     int min = 10000;
-    int min_index;
+    int min_index = -1;
     for (int i = 0; i < processesCount; i++) {
         if ((myProcesses[i].arrival_time <= currentTime) && (myProcesses[i].burst_time > 0)){
             if (myProcesses[i].burst_time < min){
@@ -318,11 +318,13 @@ int getShortestProcAvailable(Process myProcesses[], int processesCount, int curr
             }
         }
     }
+    if (min_index == -1)
+        return min_index;
     return min_index;
 }
 int getHighPriorityIndex(Process myProcesses[], int processesCount, int currentTime){
     int min = 10000;
-    int min_index;
+    int min_index = -1;
     for (int i = 0; i < processesCount; i++) {
         if ((myProcesses[i].arrival_time <= currentTime) && (myProcesses[i].burst_time > 0)){
             if (myProcesses[i].priority < min){
@@ -331,6 +333,8 @@ int getHighPriorityIndex(Process myProcesses[], int processesCount, int currentT
             }
         }
     }
+    if (min_index == -1)
+        return min_index;
     return min_index;
 }
 
@@ -453,27 +457,35 @@ void shortest_job_first_Preemptive(Process myProcesses[], int processesCount, in
     for (int i = 0; i < processesCount; ++i) {
         cout<<"P"<<myProcesses[i].process_no<<" ";
     }*/
-    int index = getShortestProcAvailable(myProcesses, processesCount, currentTime);
+    struct Process processesToExecute [processesCount];
+    for (int i = 0; i < processesCount; i++) {
+        processesToExecute[i].burst_time = myProcesses[i].burst_time;
+        processesToExecute[i].arrival_time = myProcesses[i].arrival_time;
+        processesToExecute[i].priority = myProcesses[i].priority;
+    }
+    int index = getShortestProcAvailable(processesToExecute, processesCount, currentTime);
     while (currentTime < totalBurstTime){
-        cout<<index<<endl;
-        myProcesses[index].burst_time--;
-        if (myProcesses[index].burst_time == 0){
-            myProcesses[index].stop_time = currentTime;
-        }
-        for (int i = 0; i < processesCount; i++) {
-            if ((i != index) && (myProcesses[i].arrival_time <= currentTime) && (myProcesses[i].burst_time > 0)){
-                myProcesses[i].wait_time++;
+        if (index != -1){
+            cout<<index<<endl;
+            processesToExecute[index].burst_time--;
+            if (processesToExecute[index].burst_time == 0){
+                processesToExecute[index].stop_time = currentTime;
+            }
+            for (int i = 0; i < processesCount; i++) {
+                if ((i != index) && (processesToExecute[i].arrival_time <= currentTime) && (processesToExecute[i].burst_time > 0)){
+                    processesToExecute[i].wait_time++;
+                }
             }
         }
         currentTime++;
-        index = getShortestProcAvailable(myProcesses, processesCount, currentTime);
+        index = getShortestProcAvailable(processesToExecute, processesCount, currentTime);
     }
     for (int i = 0; i < processesCount; i++)
-        total_wait_time += myProcesses[i].wait_time;
+        total_wait_time += processesToExecute[i].wait_time;
     avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
     cout<<"Process Waiting Times:"<<endl;
     for (int i = 0; i < processesCount; i++){
-        cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
+        cout<<"P"<<i+1<<": "<<processesToExecute[i].wait_time<<" ms"<<endl;
     }
     cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
 }
@@ -513,26 +525,34 @@ void priority_Preemptive(Process myProcesses[], int processesCount, int totalBur
     for (int i = 0; i < processesCount; ++i) {
         cout<<"P"<<myProcesses[i].process_no<<" ";
     }*/
-    int index = getHighPriorityIndex(myProcesses, processesCount, currentTime);
+    struct Process processesToExecute [processesCount];
+    for (int i = 0; i < processesCount; i++) {
+        processesToExecute[i].burst_time = myProcesses[i].burst_time;
+        processesToExecute[i].arrival_time = myProcesses[i].arrival_time;
+        processesToExecute[i].priority = myProcesses[i].priority;
+    }
+    int index = getHighPriorityIndex(processesToExecute, processesCount, currentTime);
     while (currentTime < totalBurstTime){
-        myProcesses[index].burst_time--;
-        if (myProcesses[index].burst_time == 0){
-            myProcesses[index].stop_time = currentTime;
-        }
-        for (int i = 0; i < processesCount; i++) {
-            if ((i != index) && (myProcesses[i].arrival_time <= currentTime) && (myProcesses[i].burst_time > 0)){
-                myProcesses[i].wait_time++;
+        if (index != -1){
+            processesToExecute[index].burst_time--;
+            if (processesToExecute[index].burst_time == 0){
+                processesToExecute[index].stop_time = currentTime;
+            }
+            for (int i = 0; i < processesCount; i++) {
+                if ((i != index) && (processesToExecute[i].arrival_time <= currentTime) && (processesToExecute[i].burst_time > 0)){
+                    processesToExecute[i].wait_time++;
+                }
             }
         }
         currentTime++;
-        index = getHighPriorityIndex(myProcesses, processesCount, currentTime);
+        index = getHighPriorityIndex(processesToExecute, processesCount, currentTime);
     }
     for (int i = 0; i < processesCount; i++)
-        total_wait_time += myProcesses[i].wait_time;
+        total_wait_time += processesToExecute[i].wait_time;
     avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
     cout<<"Process Waiting Times:"<<endl;
     for (int i = 0; i < processesCount; i++){
-        cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
+        cout<<"P"<<i+1<<": "<<processesToExecute[i].wait_time<<" ms"<<endl;
     }
     cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
 }
