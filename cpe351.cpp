@@ -26,7 +26,6 @@ void insert(struct CircularQueue *c, int x);
 int remove(struct CircularQueue *c);
 int isQueueFull(struct CircularQueue *c);
 int isQueueEmpty(struct CircularQueue *c);
-void printQueue(struct CircularQueue *c);
 void bubbleSort_burstTime(Process myProcesses[], int processesCount, int currentTime, int num);
 void bubbleSort_processNo(Process myProcesses[], int processesCount);
 void bubbleSort_priority(Process myProcesses[], int processesCount, int currentTime, int num);
@@ -48,9 +47,9 @@ int main(int argc, char* argv[]) {
         cout<<"ERROR!!! For the program to function correctly type ./cpe351 -f input.txt -o output.txt"<<endl;
         return 1;
     }*/
-    int index = 0, count, totalBurstTime = 0;
+    int index = 0, count = 0, totalBurstTime = 0;
     fstream inputFile;
-    inputFile.open("C:\\Users\\david\\CLionProjects\\CMPE35122102897\\input.txt",ios::in);
+    inputFile.open(R"(C:\Users\david\CLionProjects\CMPE35122102897\input.txt)",ios::in);
     if(inputFile.is_open()){
         cout<<"file opened"<<endl;
         string numberOfLines;
@@ -93,7 +92,7 @@ int main(int argc, char* argv[]) {
     }
     cout<<"Total burst time: "<<totalBurstTime<<endl;
 
-    int choice_simulator, method_choice = 3, time_quantum = 2, burst;
+    int choice_simulator, method_choice = 1, time_quantum = 2;
     bool preemptive = true;
     char preemptive_choice;
     cout<<"CPU Scheduler Simulator\n";
@@ -198,8 +197,6 @@ int main(int argc, char* argv[]) {
                 cout<<"INVALID OPTION"<<endl;
                 break;
         }
-
-
         cout<<"\n\n\nCPU Scheduler Simulator\n";
         cout<<"1) Set Scheduling Method"<<endl;
         cout<<"2) Set Preemptive Mode"<<endl;
@@ -253,20 +250,6 @@ int isQueueEmpty(struct CircularQueue *c){
     else
         return 0;
 }
-void printQueue(struct CircularQueue *c){
-    int x;
-    struct CircularQueue temp;
-    initializeQueue(&temp);
-    while (!isQueueEmpty(c)){
-        x = remove(c);
-        cout<<x<<endl;
-        insert(&temp, x);
-    }
-    while (!isQueueEmpty(&temp)){
-        x = remove(&temp);
-        insert(c, x);
-    }
-}
 void swap(Process& a, Process& b){
     Process temp = a;
     a = b;
@@ -282,11 +265,6 @@ void bubbleSort_burstTime(Process myProcesses[], int processesCount, int current
             }
         }
     }
-    /*for (int i = 0; i < processesCount; ++i) {
-        cout<<myProcesses[i].burst_time;
-        cout<<myProcesses[i].arrival_time;
-        cout<<myProcesses[i].priority<<endl;
-    }*/
 }
 void bubbleSort_processNo(Process myProcesses[], int processesCount){
     for (int i = 0; i < processesCount-1; i++) {
@@ -379,7 +357,6 @@ void round_Robin (Process myProcesses[], int processesCount, int time_quantum){
     for (int i = 0; i < processesCount; i++) {
         insert(&processes_Queue, myProcesses[i].burst_time);
     }
-    //printQueue(&processes_Queue);
     while (!isQueueEmpty(&processes_Queue)){
         if (flag == processesCount)
             flag = 0;
@@ -412,10 +389,6 @@ void round_Robin (Process myProcesses[], int processesCount, int time_quantum){
     cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
 }
 void shortest_job_first_nonPreemptive(Process myProcesses[], int processesCount){
-    /*cout<<"Current order: "<<endl;
-    for (int i = 0; i < processesCount; ++i) {
-        cout<<"P"<<myProcesses[i].process_no<<" ";
-    }*/
     int currentTime = 0;
     total_wait_time = 0;
     bubbleSort_burstTime(myProcesses, processesCount, currentTime, -1);
@@ -428,13 +401,8 @@ void shortest_job_first_nonPreemptive(Process myProcesses[], int processesCount)
                 myProcesses[j].wait_time += running_Process.burst_time;
         }
         myProcesses[i].stop_time = myProcesses[i].wait_time;
-        //do bubble sort here
         bubbleSort_burstTime(myProcesses, processesCount, currentTime, i);
     }
-    /*cout<<"\nOrder after Bubble sort: "<<endl;
-    for (int i = 0; i < processesCount; ++i) {
-        cout<<"P"<<myProcesses[i].process_no<<" ";
-    }*/
     for (int i = 0; i < processesCount; i++)
         myProcesses[i].wait_time = myProcesses[i].stop_time - myProcesses[i].arrival_time;
     bubbleSort_processNo(myProcesses, processesCount);
@@ -450,13 +418,7 @@ void shortest_job_first_nonPreemptive(Process myProcesses[], int processesCount)
 }
 void shortest_job_first_Preemptive(Process myProcesses[], int processesCount, int totalBurstTime){
     int currentTime = 0;
-    int completedProcesses = 0;
     total_wait_time = 0;
-    /*bubbleSort_burstTime(myProcesses, processesCount, currentTime, -1);
-    cout<<"\nOrder after Bubble sort: "<<endl;
-    for (int i = 0; i < processesCount; ++i) {
-        cout<<"P"<<myProcesses[i].process_no<<" ";
-    }*/
     struct Process processesToExecute [processesCount];
     for (int i = 0; i < processesCount; i++) {
         processesToExecute[i].burst_time = myProcesses[i].burst_time;
@@ -466,7 +428,6 @@ void shortest_job_first_Preemptive(Process myProcesses[], int processesCount, in
     int index = getShortestProcAvailable(processesToExecute, processesCount, currentTime);
     while (currentTime < totalBurstTime){
         if (index != -1){
-            cout<<index<<endl;
             processesToExecute[index].burst_time--;
             if (processesToExecute[index].burst_time == 0){
                 processesToExecute[index].stop_time = currentTime;
@@ -520,11 +481,6 @@ void priority_nonPreemptive(Process myProcesses[], int processesCount){
 void priority_Preemptive(Process myProcesses[], int processesCount, int totalBurstTime){
     int currentTime = 0;
     total_wait_time = 0;
-    /*bubbleSort_burstTime(myProcesses, processesCount, currentTime, -1);
-    cout<<"\nOrder after Bubble sort: "<<endl;
-    for (int i = 0; i < processesCount; ++i) {
-        cout<<"P"<<myProcesses[i].process_no<<" ";
-    }*/
     struct Process processesToExecute [processesCount];
     for (int i = 0; i < processesCount; i++) {
         processesToExecute[i].burst_time = myProcesses[i].burst_time;
