@@ -1,11 +1,15 @@
 //
-// Created by david on 12/16/2023.
+// Created by david kambala on 12/16/2023.
+// Student Number : 22102897
 //
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <filesystem>
 #define QUEUE_SIZE 100
 using namespace std;
+namespace fs = filesystem;
+
 struct Process {
     int burst_time, arrival_time, priority;
     int wait_time = 0;
@@ -43,13 +47,20 @@ void priority_Preemptive(Process myProcesses[], int processesCount, int totalBur
 int main(int argc, char* argv[]) {
     //THE OUTPUT FILE SHOULD BE HANDLED BEFORE THE MENU IS LOADED
     //I SHOULD HAVE A CHECK FOR -f AND -O
-    /*if(argc != 5){
-        cout<<"ERROR!!! For the program to function correctly type ./cpe351 -f input.txt -o output.txt"<<endl;
+    if(argc != 5){
+        cout<<"ERROR!!! For the program to function correctly respect this syntax: type ./cpe351 -f input.txt -o output.txt"<<endl;
+        return 1;
+    }
+    /*if (argv[1] != "-f" || argv[3] != "-o"){
+        cout<<"ERROR!!! For the program to function correctly respect this syntax: type ./cpe351 -f input.txt -o output.txt"<<endl;
         return 1;
     }*/
+    string inputFileName = argv[2];
+    fs::path currentDirectory = fs::current_path();
+    fs::path inputPath = currentDirectory / inputFileName;
     int index = 0, count = 0, totalBurstTime = 0;
     fstream inputFile;
-    inputFile.open(R"(C:\Users\david\CLionProjects\CMPE35122102897\input.txt)",ios::in);
+    inputFile.open(inputPath.string(),ios::in);
     if(inputFile.is_open()){
         cout<<"file opened"<<endl;
         string numberOfLines;
