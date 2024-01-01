@@ -6,6 +6,7 @@
 #include <fstream>
 #include <string>
 #include <filesystem>
+#include<string.h>
 #define QUEUE_SIZE 100
 using namespace std;
 namespace fs = filesystem;
@@ -19,6 +20,13 @@ struct Process {
 
 int total_wait_time = 0, current;
 double avg_wait_time;
+string inputFileName;
+string outputFileName;
+fs::path currentDirectory;
+fs::path inputPath;
+fs::path outputPath;
+fstream inputFile;
+fstream outputFile;
 struct CircularQueue {
     int front;
     int rear;
@@ -51,15 +59,18 @@ int main(int argc, char* argv[]) {
         cout<<"ERROR!!! For the program to function correctly respect this syntax: type ./cpe351 -f input.txt -o output.txt"<<endl;
         return 1;
     }
-    /*if (argv[1] != "-f" || argv[3] != "-o"){
-        cout<<"ERROR!!! For the program to function correctly respect this syntax: type ./cpe351 -f input.txt -o output.txt"<<endl;
+    if (strcmp(argv[1], "-f") != 0 || strcmp(argv[3], "-o") != 0){
+        cout<<"ERROR!!! You did not use the correct parameters respect this syntax: type ./cpe351 -f input.txt -o output.txt"<<endl;
         return 1;
-    }*/
-    string inputFileName = argv[2];
-    fs::path currentDirectory = fs::current_path();
-    fs::path inputPath = currentDirectory / inputFileName;
+    }
+    inputFileName = argv[2];
+    outputFileName = argv[4];
+    currentDirectory = fs::current_path();
+    inputPath = currentDirectory / inputFileName;
+    outputPath = currentDirectory / outputFileName;
     int index = 0, count = 0, totalBurstTime = 0;
-    fstream inputFile;
+    outputFile.open(outputPath.string(), ios::out);
+    outputFile.close();
     inputFile.open(inputPath.string(),ios::in);
     if(inputFile.is_open()){
         cout<<"file opened"<<endl;
@@ -168,12 +179,10 @@ int main(int argc, char* argv[]) {
             case 3:
                 //SHOW RESULT I should put first come out side of the !preemptive
                 if(method_choice == 1){
-                    cout<<"Scheduling Method: First Come First Served"<<endl;
                     first_come(myProcesses, totalBurstTime, count);
                 }
                 else if (method_choice == 4){
                     //ROUND ROBIN
-
                     round_Robin(myProcesses, count, time_quantum);
                 }
                 else if (!preemptive){
@@ -349,15 +358,21 @@ void first_come(Process myProcesses[], int totalBurstTime, int processesCount){
     for (int i = 0; i < processesCount; i++)
         total_wait_time += myProcesses[i].wait_time;
     avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
+    outputFile.open(outputPath.string(), ios::app);
+    cout<<"Scheduling Method: First Come First Served"<<endl;
+    outputFile<<"Scheduling Method: First Come First Served"<<endl;
     cout<<"Process Waiting Times:"<<endl;
+    outputFile<<"Process Waiting Times:"<<endl;
     for (int i = 0; i < processesCount; i++){
         cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
+        outputFile<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
     }
     cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
+    outputFile<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
+    outputFile.close();
 }
 
 void round_Robin (Process myProcesses[], int processesCount, int time_quantum){
-    cout<<"Scheduling Method: Round Robin Scheduling - time_quantum = "<< time_quantum<<endl;
     struct CircularQueue processes_Queue;
     initializeQueue(&processes_Queue);
     int currentTime = 0;
@@ -393,11 +408,18 @@ void round_Robin (Process myProcesses[], int processesCount, int time_quantum){
     for (int i = 0; i < processesCount; i++)
         total_wait_time += myProcesses[i].wait_time;
     avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
+    outputFile.open(outputPath.string(), ios::app);
+    cout<<"Scheduling Method: Round Robin Scheduling - time_quantum = "<< time_quantum<<endl;
+    outputFile<<"Scheduling Method: Round Robin Scheduling - time_quantum = "<< time_quantum<<endl;
     cout<<"Process Waiting Times:"<<endl;
+    outputFile<<"Process Waiting Times:"<<endl;
     for (int i = 0; i < processesCount; i++){
         cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
+        outputFile<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
     }
     cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
+    outputFile<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
+    outputFile.close();
 }
 void shortest_job_first_nonPreemptive(Process myProcesses[], int processesCount){
     int currentTime = 0;
@@ -420,6 +442,7 @@ void shortest_job_first_nonPreemptive(Process myProcesses[], int processesCount)
     for (int i = 0; i < processesCount; i++)
         total_wait_time += myProcesses[i].wait_time;
     avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
+    outputFile.open(outputPath.string(), ios::app);
     cout<<"Process Waiting Times:"<<endl;
     for (int i = 0; i < processesCount; i++){
         cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
