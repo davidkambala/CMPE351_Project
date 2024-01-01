@@ -5,11 +5,11 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <filesystem>
-#include<string.h>
+#include <experimental/filesystem>
+#include <string.h>
 #define QUEUE_SIZE 100
 using namespace std;
-namespace fs = filesystem;
+namespace fs =  std::experimental::filesystem;
 
 struct Process {
     int burst_time, arrival_time, priority;
@@ -137,11 +137,11 @@ int main(int argc, char* argv[]) {
                 cin>>method_choice;
                 switch(method_choice){
                     case 1:
-                        //FCFS
+                        //First Come First Served
                         cout<<"You chose First Come First Served Scheduling Method"<<endl;
                         break;
                     case 2:
-                        //SJFS
+                        //Shortest Job First Scheduling
                         cout<<"You chose Shortest Job First Scheduling Method"<<endl;
                         break;
                     case 3:
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
                         cout<<"You chose Priority Scheduling Method"<<endl;
                         break;
                     case 4:
-                        //RR
+                        //Round Robin
                         cout<<"You chose Round Robin Method"<<endl;
                         cout<<"Enter the time quantum: ";
                         cin>>time_quantum;
@@ -177,8 +177,9 @@ int main(int argc, char* argv[]) {
                 }
                 break;
             case 3:
-                //SHOW RESULT I should put first come out side of the !preemptive
+                //SHOW RESULT
                 if(method_choice == 1){
+                    //First Come
                     first_come(myProcesses, totalBurstTime, count);
                 }
                 else if (method_choice == 4){
@@ -188,23 +189,19 @@ int main(int argc, char* argv[]) {
                 else if (!preemptive){
                     //Non Preemptive scheduling
                     if (method_choice == 2){
-                        //SJFS Non preemptive
-                        cout<<"Scheduling Method: Shortest Job First - Non-Preemptive"<<endl;
+                        //Shortest Job First Scheduling Non preemptive
                         shortest_job_first_nonPreemptive(myProcesses, count);
                     } else if (method_choice == 3){
                         //PRIORITY Non preemptive
-                        cout<<"Scheduling Method: Priority Scheduling - Non-Preemptive"<<endl;
                         priority_nonPreemptive(myProcesses, count);
                     }
                 } else{
                     //Preemptive Scheduling
                     if (method_choice == 2){
-                        //SJFS preemptive
-                        cout<<"Scheduling Method: Shortest Job First - Preemptive"<<endl;
+                        //Shortest Job First Scheduling preemptive
                         shortest_job_first_Preemptive(myProcesses, count, totalBurstTime);
                     } else if (method_choice == 3){
                         //PRIORITY preemptive
-                        cout<<"Scheduling Method: Priority Scheduling - Preemptive"<<endl;
                         priority_Preemptive(myProcesses, count, totalBurstTime);
                     }
                 }
@@ -443,11 +440,17 @@ void shortest_job_first_nonPreemptive(Process myProcesses[], int processesCount)
         total_wait_time += myProcesses[i].wait_time;
     avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
     outputFile.open(outputPath.string(), ios::app);
+    cout<<"Scheduling Method: Shortest Job First - Non-Preemptive"<<endl;
+    outputFile<<"Scheduling Method: Shortest Job First - Non-Preemptive"<<endl;
     cout<<"Process Waiting Times:"<<endl;
+    outputFile<<"Process Waiting Times:"<<endl;
     for (int i = 0; i < processesCount; i++){
         cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
+        outputFile<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
     }
     cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
+    outputFile<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
+    outputFile.close();
 
 }
 void shortest_job_first_Preemptive(Process myProcesses[], int processesCount, int totalBurstTime){
@@ -478,11 +481,18 @@ void shortest_job_first_Preemptive(Process myProcesses[], int processesCount, in
     for (int i = 0; i < processesCount; i++)
         total_wait_time += processesToExecute[i].wait_time;
     avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
+    outputFile.open(outputPath.string(), ios::app);
+    cout<<"Scheduling Method: Shortest Job First - Preemptive"<<endl;
+    outputFile<<"Scheduling Method: Shortest Job First - Preemptive"<<endl;
     cout<<"Process Waiting Times:"<<endl;
+    outputFile<<"Process Waiting Times:"<<endl;
     for (int i = 0; i < processesCount; i++){
         cout<<"P"<<i+1<<": "<<processesToExecute[i].wait_time<<" ms"<<endl;
+        outputFile<<"P"<<i+1<<": "<<processesToExecute[i].wait_time<<" ms"<<endl;
     }
     cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
+    outputFile<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
+    outputFile.close();
 }
 
 void priority_nonPreemptive(Process myProcesses[], int processesCount){
@@ -506,11 +516,18 @@ void priority_nonPreemptive(Process myProcesses[], int processesCount){
     for (int i = 0; i < processesCount; i++)
         total_wait_time += myProcesses[i].wait_time;
     avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
+    outputFile.open(outputPath.string(), ios::app);
+    cout<<"Scheduling Method: Priority Scheduling - Non-Preemptive"<<endl;
+    outputFile<<"Scheduling Method: Priority Scheduling - Non-Preemptive"<<endl;
     cout<<"Process Waiting Times:"<<endl;
+    outputFile<<"Process Waiting Times:"<<endl;
     for (int i = 0; i < processesCount; i++){
         cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
+        outputFile<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
     }
     cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
+    outputFile<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
+    outputFile.close();
 }
 void priority_Preemptive(Process myProcesses[], int processesCount, int totalBurstTime){
     int currentTime = 0;
@@ -540,9 +557,16 @@ void priority_Preemptive(Process myProcesses[], int processesCount, int totalBur
     for (int i = 0; i < processesCount; i++)
         total_wait_time += processesToExecute[i].wait_time;
     avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
+    outputFile.open(outputPath.string(), ios::app);
+    cout<<"Scheduling Method: Priority Scheduling - Preemptive"<<endl;
+    outputFile<<"Scheduling Method: Priority Scheduling - Preemptive"<<endl;
     cout<<"Process Waiting Times:"<<endl;
+    outputFile<<"Process Waiting Times:"<<endl;
     for (int i = 0; i < processesCount; i++){
         cout<<"P"<<i+1<<": "<<processesToExecute[i].wait_time<<" ms"<<endl;
+        outputFile<<"P"<<i+1<<": "<<processesToExecute[i].wait_time<<" ms"<<endl;
     }
     cout<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
+    outputFile<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
+    outputFile.close();
 }
