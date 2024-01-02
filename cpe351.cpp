@@ -5,11 +5,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <experimental/filesystem>
 #include <string.h>
 #define QUEUE_SIZE 100
 using namespace std;
-namespace fs =  std::experimental::filesystem;
 
 struct Process {
     int burst_time, arrival_time, priority;
@@ -22,9 +20,6 @@ int total_wait_time = 0, current;
 double avg_wait_time;
 string inputFileName;
 string outputFileName;
-fs::path currentDirectory;
-fs::path inputPath;
-fs::path outputPath;
 fstream inputFile;
 fstream outputFile;
 struct CircularQueue {
@@ -65,13 +60,10 @@ int main(int argc, char* argv[]) {
     }
     inputFileName = argv[2];
     outputFileName = argv[4];
-    currentDirectory = fs::current_path();
-    inputPath = currentDirectory / inputFileName;
-    outputPath = currentDirectory / outputFileName;
     int index = 0, count = 0, totalBurstTime = 0;
-    outputFile.open(outputPath.string(), ios::out);
+    outputFile.open(outputFileName, ios::out);
     outputFile.close();
-    inputFile.open(inputPath.string(),ios::in);
+    inputFile.open(inputFileName,ios::in);
     if(inputFile.is_open()){
         cout<<"file opened"<<endl;
         string numberOfLines;
@@ -355,7 +347,7 @@ void first_come(Process myProcesses[], int totalBurstTime, int processesCount){
     for (int i = 0; i < processesCount; i++)
         total_wait_time += myProcesses[i].wait_time;
     avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
-    outputFile.open(outputPath.string(), ios::app);
+    outputFile.open(outputFileName, ios::app);
     cout<<"Scheduling Method: First Come First Served"<<endl;
     outputFile<<"Scheduling Method: First Come First Served"<<endl;
     cout<<"Process Waiting Times:"<<endl;
@@ -405,7 +397,7 @@ void round_Robin (Process myProcesses[], int processesCount, int time_quantum){
     for (int i = 0; i < processesCount; i++)
         total_wait_time += myProcesses[i].wait_time;
     avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
-    outputFile.open(outputPath.string(), ios::app);
+    outputFile.open(outputFileName, ios::app);
     cout<<"Scheduling Method: Round Robin Scheduling - time_quantum = "<< time_quantum<<endl;
     outputFile<<"Scheduling Method: Round Robin Scheduling - time_quantum = "<< time_quantum<<endl;
     cout<<"Process Waiting Times:"<<endl;
@@ -439,7 +431,7 @@ void shortest_job_first_nonPreemptive(Process myProcesses[], int processesCount)
     for (int i = 0; i < processesCount; i++)
         total_wait_time += myProcesses[i].wait_time;
     avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
-    outputFile.open(outputPath.string(), ios::app);
+    outputFile.open(outputFileName, ios::app);
     cout<<"Scheduling Method: Shortest Job First - Non-Preemptive"<<endl;
     outputFile<<"Scheduling Method: Shortest Job First - Non-Preemptive"<<endl;
     cout<<"Process Waiting Times:"<<endl;
@@ -481,7 +473,7 @@ void shortest_job_first_Preemptive(Process myProcesses[], int processesCount, in
     for (int i = 0; i < processesCount; i++)
         total_wait_time += processesToExecute[i].wait_time;
     avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
-    outputFile.open(outputPath.string(), ios::app);
+    outputFile.open(outputFileName, ios::app);
     cout<<"Scheduling Method: Shortest Job First - Preemptive"<<endl;
     outputFile<<"Scheduling Method: Shortest Job First - Preemptive"<<endl;
     cout<<"Process Waiting Times:"<<endl;
@@ -516,7 +508,7 @@ void priority_nonPreemptive(Process myProcesses[], int processesCount){
     for (int i = 0; i < processesCount; i++)
         total_wait_time += myProcesses[i].wait_time;
     avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
-    outputFile.open(outputPath.string(), ios::app);
+    outputFile.open(outputFileName, ios::app);
     cout<<"Scheduling Method: Priority Scheduling - Non-Preemptive"<<endl;
     outputFile<<"Scheduling Method: Priority Scheduling - Non-Preemptive"<<endl;
     cout<<"Process Waiting Times:"<<endl;
@@ -557,7 +549,7 @@ void priority_Preemptive(Process myProcesses[], int processesCount, int totalBur
     for (int i = 0; i < processesCount; i++)
         total_wait_time += processesToExecute[i].wait_time;
     avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
-    outputFile.open(outputPath.string(), ios::app);
+    outputFile.open(outputFileName, ios::app);
     cout<<"Scheduling Method: Priority Scheduling - Preemptive"<<endl;
     outputFile<<"Scheduling Method: Priority Scheduling - Preemptive"<<endl;
     cout<<"Process Waiting Times:"<<endl;
