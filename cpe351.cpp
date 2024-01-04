@@ -6,7 +6,8 @@
 #include <fstream>
 #include <string>
 #include <string.h>
-#define QUEUE_SIZE 100
+#include <sstream>
+#define QUEUE_SIZE 10000
 using namespace std;
 
 struct Process {
@@ -80,20 +81,22 @@ int main(int argc, char* argv[]) {
     string line;
     struct Process myProcesses[count];
     while (getline(inputFile, line)){
-        for (int i = 0; i < line.length(); i++) {
-            char current_Character = line[i];
-            if(i==0){
-                //BURST TIME
-                myProcesses[index].burst_time = stoi(string(1, current_Character));
+        stringstream ss(line);
+        string part;
+
+        int i = 0;
+        while (getline(ss, part, ':')) {
+            if (i == 0) {
+                // BURST TIME
+                myProcesses[index].burst_time = stoi(part);
+            } else if (i == 1) {
+                // ARRIVAL TIME
+                myProcesses[index].arrival_time = stoi(part);
+            } else if (i == 2) {
+                // PRIORITY
+                myProcesses[index].priority = stoi(part);
             }
-            if(i==2){
-                //ARRIVAL TIME
-                myProcesses[index].arrival_time = stoi(string(1,current_Character));
-            }
-            if(i==4){
-                //PRIORITY
-                myProcesses[index].priority = stoi(string(1,current_Character));
-            }
+            i++;
         }
         myProcesses[index].process_no = index + 1;
         index++;
