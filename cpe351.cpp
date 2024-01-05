@@ -13,7 +13,7 @@ using namespace std;
 struct Process {
     int burst_time, arrival_time, priority;
     int wait_time = 0;
-    int stop_time;
+    int stop_time = 0;
     int process_no;
 };
 
@@ -369,16 +369,15 @@ void round_Robin (Process myProcesses[], int processesCount, int time_quantum){
     initializeQueue(&processes_Queue);
     int currentTime = 0;
     total_wait_time = 0;
-    int currentProcessBurstTime;
+    int currentProcessBurstTime, currentProcessNo;
     int time_executed;
-    int flag = 0;
     for (int i = 0; i < processesCount; i++) {
         insert(&processes_Queue, myProcesses[i].burst_time);
+        insert(&processes_Queue, myProcesses[i].process_no);
     }
     while (!isQueueEmpty(&processes_Queue)){
-        if (flag == processesCount)
-            flag = 0;
         currentProcessBurstTime = remove(&processes_Queue);
+        currentProcessNo = remove(&processes_Queue);
         if (time_quantum < currentProcessBurstTime)
             time_executed = time_quantum;
         else
@@ -386,14 +385,15 @@ void round_Robin (Process myProcesses[], int processesCount, int time_quantum){
         currentProcessBurstTime -= time_executed;
         currentTime += time_executed;
         for (int i = 0; i < processesCount; i++) {
-            myProcesses[i].wait_time += time_executed;
+            if (i != currentProcessNo-1)
+                myProcesses[i].wait_time += time_executed;
         }
-        myProcesses[flag].wait_time -= time_executed;
-        if (currentProcessBurstTime > 0)
+        if (currentProcessBurstTime > 0){
             insert(&processes_Queue, currentProcessBurstTime);
+            insert(&processes_Queue, currentProcessNo);
+        }
         else
-            myProcesses[flag].stop_time = myProcesses[flag].wait_time;
-        flag++;
+            myProcesses[currentProcessNo-1].stop_time = myProcesses[currentProcessNo-1].wait_time;
     }
     for (int i = 0; i < processesCount; i++)
         myProcesses[i].wait_time = myProcesses[i].stop_time - myProcesses[i].arrival_time;
