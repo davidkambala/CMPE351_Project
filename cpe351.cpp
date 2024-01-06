@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
     }
     
 
-    int choice_simulator, method_choice = 1, time_quantum = 2;
+    int choice_simulator, method_choice = 0, time_quantum = 2;
     bool preemptive = true;
     char preemptive_choice;
     cout<<"CPU Scheduler Simulator\n";
@@ -132,6 +132,7 @@ int main(int argc, char* argv[]) {
         switch(choice_simulator){
             case 1:
                 cout<<"Choose scheduling method, none by default: "<<endl;
+                cout<<"0) None, FNone of scheduling method chosen"<<endl;
                 cout<<"1) First Come, First Served Scheduling"<<endl;
                 cout<<"2) Shortest-Job-First Scheduling"<<endl;
                 cout<<"3) Priority Scheduling"<<endl;
@@ -139,6 +140,10 @@ int main(int argc, char* argv[]) {
                 cout<<"Option > ";
                 cin>>method_choice;
                 switch(method_choice){
+                    case 0:
+                        //None is choosen
+                        cout<<"You Set the Scheduling Method to None"<<endl;
+                        break;
                     case 1:
                         //First Come First Served
                         cout<<"You chose First Come First Served Scheduling Method"<<endl;
@@ -181,36 +186,40 @@ int main(int argc, char* argv[]) {
                 break;
             case 3:
                 //SHOW RESULT
-                if(method_choice == 1){
-                    //First Come
-                    first_come(myProcesses, totalBurstTime, count);
-                }
-                else if (method_choice == 4){
-                    //ROUND ROBIN
-                    round_Robin(myProcesses, count, time_quantum);
-                }
-                else if (!preemptive){
-                    //Non Preemptive scheduling
-                    if (method_choice == 2){
-                        //Shortest Job First Scheduling Non preemptive
-                        shortest_job_first_nonPreemptive(myProcesses, count);
-                    } else if (method_choice == 3){
-                        //PRIORITY Non preemptive
-                        priority_nonPreemptive(myProcesses, count);
-                    }
+                if (method_choice == 0){
+                    cout<<"No scheduling Method is selected, Please choose a scheduling method first"<<endl;
                 } else{
-                    //Preemptive Scheduling
-                    if (method_choice == 2){
-                        //Shortest Job First Scheduling preemptive
-                        shortest_job_first_Preemptive(myProcesses, count, totalBurstTime);
-                    } else if (method_choice == 3){
-                        //PRIORITY preemptive
-                        priority_Preemptive(myProcesses, count, totalBurstTime);
+                    if(method_choice == 1){
+                        //First Come
+                        first_come(myProcesses, totalBurstTime, count);
                     }
-                }
-                for (int i = 0; i < count; i++) {
-                    myProcesses[i].wait_time = 0;
-                    myProcesses[i].stop_time = 0;
+                    else if (method_choice == 4){
+                        //ROUND ROBIN
+                        round_Robin(myProcesses, count, time_quantum);
+                    }
+                    else if (!preemptive){
+                        //Non Preemptive scheduling
+                        if (method_choice == 2){
+                            //Shortest Job First Scheduling Non preemptive
+                            shortest_job_first_nonPreemptive(myProcesses, count);
+                        } else if (method_choice == 3){
+                            //PRIORITY Non preemptive
+                            priority_nonPreemptive(myProcesses, count);
+                        }
+                    } else{
+                        //Preemptive Scheduling
+                        if (method_choice == 2){
+                            //Shortest Job First Scheduling preemptive
+                            shortest_job_first_Preemptive(myProcesses, count, totalBurstTime);
+                        } else if (method_choice == 3){
+                            //PRIORITY preemptive
+                            priority_Preemptive(myProcesses, count, totalBurstTime);
+                        }
+                    }
+                    for (int i = 0; i < count; i++) {
+                        myProcesses[i].wait_time = 0;
+                        myProcesses[i].stop_time = 0;
+                    }
                 }
                 break;
             default:
