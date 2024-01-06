@@ -17,7 +17,7 @@ struct Process {
     int process_no;
 };
 
-int total_wait_time = 0, current;
+int total_wait_time = 0;
 double avg_wait_time;
 string inputFileName;
 string outputFileName;
@@ -34,23 +34,21 @@ void insert(struct CircularQueue *c, int x);
 int remove(struct CircularQueue *c);
 int isQueueFull(struct CircularQueue *c);
 int isQueueEmpty(struct CircularQueue *c);
-void bubbleSort_burstTime(Process myProcesses[], int processesCount, int currentTime, int num);
-void bubbleSort_processNo(Process myProcesses[], int processesCount);
-void bubbleSort_priority(Process myProcesses[], int processesCount, int currentTime, int num);
+void bubbleSort_burstTime(Process myProcesses[], int numberOfProcesses, int clockTime, int currentIndex);
+void bubbleSort_processNo(Process myProcesses[], int numberOfProcesses);
+void bubbleSort_priority(Process myProcesses[], int numberOfProcesses, int clockTime, int num);
 void swap(Process& a, Process& b);
-int getShortestProcAvailable(Process myProcesses[], int processesCount, int currentTime);
-int getHighPriorityIndex(Process myProcesses[], int processesCount, int currentTime);
+int getShortestProcAvailable(Process myProcesses[], int numberOfProcesses, int clockTime);
+int getHighPriorityIndex(Process myProcesses[], int numberOfProcesses, int clockTime);
 
-void first_come(Process myProcesses[], int totalBurstTime, int processesCount);
-void round_Robin (Process myProcesses[], int processesCount, int time_quantum);
-void shortest_job_first_nonPreemptive(Process myProcesses[], int processesCount);
-void shortest_job_first_Preemptive(Process myProcesses[], int processesCount, int totalBurstTime);
-void priority_nonPreemptive(Process myProcesses[], int processesCount);
-void priority_Preemptive(Process myProcesses[], int processesCount, int totalBurstTime);
+void first_come(Process myProcesses[], int totalBurstTime, int numberOfProcesses);
+void round_Robin (Process myProcesses[], int numberOfProcesses, int time_quantum);
+void shortest_job_first_nonPreemptive(Process myProcesses[], int numberOfProcesses);
+void shortest_job_first_Preemptive(Process myProcesses[], int numberOfProcesses, int totalBurstTime);
+void priority_nonPreemptive(Process myProcesses[], int numberOfProcesses);
+void priority_Preemptive(Process myProcesses[], int numberOfProcesses, int totalBurstTime);
 
 int main(int argc, char* argv[]) {
-    //THE OUTPUT FILE SHOULD BE HANDLED BEFORE THE MENU IS LOADED
-    //I SHOULD HAVE A CHECK FOR -f AND -O
     if(argc != 5){
         cout<<"ERROR!!! For the program to function correctly respect this syntax: type ./cpe351 -f input.txt -o output.txt"<<endl;
         return 1;
@@ -107,7 +105,6 @@ int main(int argc, char* argv[]) {
         totalBurstTime += myProcesses[i].burst_time;
     }
     cout<<"Total burst time: "<<totalBurstTime<<endl;
-    //IN CASE PROCESSES ARE OUT OF ORDER WITH RESPECT TO BURST TIME 
     for (int i = 0; i < count-1; i++) {
         for (int j = 0; j < count-i-1; j++) {
             if (myProcesses[j].arrival_time > myProcesses[j+1].arrival_time){
@@ -134,11 +131,11 @@ int main(int argc, char* argv[]) {
         //START OF THE SIMULATION
         switch(choice_simulator){
             case 1:
-                cout<<"Choose scheduling method, none by default: "<<endl; //current is!!!
+                cout<<"Choose scheduling method, none by default: "<<endl;
                 cout<<"1) First Come, First Served Scheduling"<<endl;
                 cout<<"2) Shortest-Job-First Scheduling"<<endl;
                 cout<<"3) Priority Scheduling"<<endl;
-                cout<<"4) Round-Robin Scheduling"<<endl; //case 4 ask time quantum
+                cout<<"4) Round-Robin Scheduling"<<endl;
                 cout<<"Option > ";
                 cin>>method_choice;
                 switch(method_choice){
@@ -278,10 +275,10 @@ void swap(Process& a, Process& b){
     a = b;
     b = temp;
 }
-void bubbleSort_burstTime(Process myProcesses[], int processesCount, int currentTime, int num){
-    for (int i = 0; i < processesCount-1; i++) {
-        for (int j = num + 1; j < processesCount - i - 1; j++) {
-            if (myProcesses[j+1].arrival_time <= currentTime){
+void bubbleSort_burstTime(Process myProcesses[], int numberOfProcesses, int clockTime, int currentIndex){
+    for (int i = 0; i < numberOfProcesses-1; i++) {
+        for (int j = currentIndex + 1; j < numberOfProcesses - i - 1; j++) {
+            if (myProcesses[j+1].arrival_time <= clockTime){
                 if ((myProcesses[j].burst_time > myProcesses[j+1].burst_time)){
                     swap(myProcesses[j], myProcesses[j+1]);
                 }
@@ -289,30 +286,30 @@ void bubbleSort_burstTime(Process myProcesses[], int processesCount, int current
         }
     }
 }
-void bubbleSort_processNo(Process myProcesses[], int processesCount){
-    for (int i = 0; i < processesCount-1; i++) {
-        for (int j = 0; j < processesCount-i-1; j++) {
+void bubbleSort_processNo(Process myProcesses[], int numberOfProcesses){
+    for (int i = 0; i < numberOfProcesses-1; i++) {
+        for (int j = 0; j < numberOfProcesses-i-1; j++) {
             if (myProcesses[j].process_no > myProcesses[j+1].process_no){
                 swap(myProcesses[j], myProcesses[j+1]);
             }
         }
     }
 }
-void bubbleSort_priority(Process myProcesses[], int processesCount, int currentTime, int num){
-    for (int i = 0; i < processesCount-1; i++) {
-        for (int j = num + 1; j < processesCount-i-1; j++) {
-            if ((myProcesses[j].arrival_time <= currentTime) && myProcesses[j+1].arrival_time <= currentTime)
+void bubbleSort_priority(Process myProcesses[], int numberOfProcesses, int clockTime, int num){
+    for (int i = 0; i < numberOfProcesses-1; i++) {
+        for (int j = num + 1; j < numberOfProcesses-i-1; j++) {
+            if ((myProcesses[j].arrival_time <= clockTime) && myProcesses[j+1].arrival_time <= clockTime)
                 if (myProcesses[j].priority > myProcesses[j+1].priority){
                     swap(myProcesses[j], myProcesses[j+1]);
                 }
         }
     }
 }
-int getShortestProcAvailable(Process myProcesses[], int processesCount, int currentTime){
+int getShortestProcAvailable(Process myProcesses[], int numberOfProcesses, int clockTime){
     int min = 10000;
     int min_index = -1;
-    for (int i = 0; i < processesCount; i++) {
-        if ((myProcesses[i].arrival_time <= currentTime) && (myProcesses[i].burst_time > 0)){
+    for (int i = 0; i < numberOfProcesses; i++) {
+        if ((myProcesses[i].arrival_time <= clockTime) && (myProcesses[i].burst_time > 0)){
             if (myProcesses[i].burst_time < min){
                 min_index = i;
                 min = myProcesses[i].burst_time;
@@ -323,11 +320,11 @@ int getShortestProcAvailable(Process myProcesses[], int processesCount, int curr
         return min_index;
     return min_index;
 }
-int getHighPriorityIndex(Process myProcesses[], int processesCount, int currentTime){
+int getHighPriorityIndex(Process myProcesses[], int numberOfProcesses, int clockTime){
     int min = 10000;
     int min_index = -1;
-    for (int i = 0; i < processesCount; i++) {
-        if ((myProcesses[i].arrival_time <= currentTime) && (myProcesses[i].burst_time > 0)){
+    for (int i = 0; i < numberOfProcesses; i++) {
+        if ((myProcesses[i].arrival_time <= clockTime) && (myProcesses[i].burst_time > 0)){
             if (myProcesses[i].priority < min){
                 min_index = i;
                 min = myProcesses[i].priority;
@@ -339,34 +336,34 @@ int getHighPriorityIndex(Process myProcesses[], int processesCount, int currentT
     return min_index;
 }
 
-void first_come(Process myProcesses[], int totalBurstTime, int processesCount){
-    current = 0;
+void first_come(Process myProcesses[], int totalBurstTime, int numberOfProcesses){
+    int executedProcessIndex = 0;
     total_wait_time = 0;
     int elapsed_Time = totalBurstTime;
-    int sched_queue_burst[processesCount];
-    for (int i = 0; i < processesCount; i++)
+    int sched_queue_burst[numberOfProcesses];
+    for (int i = 0; i < numberOfProcesses; i++)
         sched_queue_burst[i] = myProcesses[i].burst_time;
     while (elapsed_Time != 0){
-        if(sched_queue_burst[current] == 0){
-            current++;
+        if(sched_queue_burst[executedProcessIndex] == 0){
+            executedProcessIndex++;
         }
-        for (int i = current+1; i < processesCount; i++) {
+        for (int i = executedProcessIndex+1; i < numberOfProcesses; i++) {
             myProcesses[i].wait_time++;
         }
-        sched_queue_burst[current]--;
+        sched_queue_burst[executedProcessIndex]--;
         elapsed_Time--;
     }
-    for (int i = 0; i < processesCount; i++)
+    for (int i = 0; i < numberOfProcesses; i++)
         myProcesses[i].wait_time -= myProcesses[i].arrival_time;
-    for (int i = 0; i < processesCount; i++)
+    for (int i = 0; i < numberOfProcesses; i++)
         total_wait_time += myProcesses[i].wait_time;
-    avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
+    avg_wait_time = static_cast<double>(total_wait_time)/numberOfProcesses;
     outputFile.open(outputFileName, ios::app);
     cout<<"Scheduling Method: First Come First Served"<<endl;
     outputFile<<"Scheduling Method: First Come First Served"<<endl;
     cout<<"Process Waiting Times:"<<endl;
     outputFile<<"Process Waiting Times:"<<endl;
-    for (int i = 0; i < processesCount; i++){
+    for (int i = 0; i < numberOfProcesses; i++){
         cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
         outputFile<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
     }
@@ -375,14 +372,14 @@ void first_come(Process myProcesses[], int totalBurstTime, int processesCount){
     outputFile.close();
 }
 
-void round_Robin (Process myProcesses[], int processesCount, int time_quantum){
+void round_Robin (Process myProcesses[], int numberOfProcesses, int time_quantum){
     struct CircularQueue processes_Queue;
     initializeQueue(&processes_Queue);
-    int currentTime = 0;
+    int clockTime = 0;
     total_wait_time = 0;
     int currentProcessBurstTime, currentProcessNo;
     int time_executed;
-    for (int i = 0; i < processesCount; i++) {
+    for (int i = 0; i < numberOfProcesses; i++) {
         insert(&processes_Queue, myProcesses[i].burst_time);
         insert(&processes_Queue, myProcesses[i].process_no);
     }
@@ -394,8 +391,8 @@ void round_Robin (Process myProcesses[], int processesCount, int time_quantum){
         else
             time_executed = currentProcessBurstTime;
         currentProcessBurstTime -= time_executed;
-        currentTime += time_executed;
-        for (int i = 0; i < processesCount; i++) {
+        clockTime += time_executed;
+        for (int i = 0; i < numberOfProcesses; i++) {
             if (i != currentProcessNo-1)
                 myProcesses[i].wait_time += time_executed;
         }
@@ -406,17 +403,17 @@ void round_Robin (Process myProcesses[], int processesCount, int time_quantum){
         else
             myProcesses[currentProcessNo-1].stop_time = myProcesses[currentProcessNo-1].wait_time;
     }
-    for (int i = 0; i < processesCount; i++)
+    for (int i = 0; i < numberOfProcesses; i++)
         myProcesses[i].wait_time = myProcesses[i].stop_time - myProcesses[i].arrival_time;
-    for (int i = 0; i < processesCount; i++)
+    for (int i = 0; i < numberOfProcesses; i++)
         total_wait_time += myProcesses[i].wait_time;
-    avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
+    avg_wait_time = static_cast<double>(total_wait_time)/numberOfProcesses;
     outputFile.open(outputFileName, ios::app);
     cout<<"Scheduling Method: Round Robin Scheduling - time_quantum = "<< time_quantum<<endl;
     outputFile<<"Scheduling Method: Round Robin Scheduling - time_quantum = "<< time_quantum<<endl;
     cout<<"Process Waiting Times:"<<endl;
     outputFile<<"Process Waiting Times:"<<endl;
-    for (int i = 0; i < processesCount; i++){
+    for (int i = 0; i < numberOfProcesses; i++){
         cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
         outputFile<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
     }
@@ -424,33 +421,33 @@ void round_Robin (Process myProcesses[], int processesCount, int time_quantum){
     outputFile<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
     outputFile.close();
 }
-void shortest_job_first_nonPreemptive(Process myProcesses[], int processesCount){
-    int currentTime = 0;
+void shortest_job_first_nonPreemptive(Process myProcesses[], int numberOfProcesses){
+    int clockTime = 0;
     total_wait_time = 0;
-    bubbleSort_burstTime(myProcesses, processesCount, currentTime, -1);
+    bubbleSort_burstTime(myProcesses, numberOfProcesses, clockTime, -1);
     Process running_Process;
-    for (int i = 0; i < processesCount; i++) {
+    for (int i = 0; i < numberOfProcesses; i++) {
         running_Process = myProcesses[i];
-        currentTime += running_Process.burst_time;
-        for (int j = 0; j < processesCount; j++) {
+        clockTime = clockTime + running_Process.burst_time;
+        for (int j = 0; j < numberOfProcesses; j++) {
             if (i != j)
                 myProcesses[j].wait_time += running_Process.burst_time;
         }
         myProcesses[i].stop_time = myProcesses[i].wait_time;
-        bubbleSort_burstTime(myProcesses, processesCount, currentTime, i);
+        bubbleSort_burstTime(myProcesses, numberOfProcesses, clockTime, i);
     }
-    for (int i = 0; i < processesCount; i++)
+    for (int i = 0; i < numberOfProcesses; i++)
         myProcesses[i].wait_time = myProcesses[i].stop_time - myProcesses[i].arrival_time;
-    bubbleSort_processNo(myProcesses, processesCount);
-    for (int i = 0; i < processesCount; i++)
+    bubbleSort_processNo(myProcesses, numberOfProcesses);
+    for (int i = 0; i < numberOfProcesses; i++)
         total_wait_time += myProcesses[i].wait_time;
-    avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
+    avg_wait_time = static_cast<double>(total_wait_time)/numberOfProcesses;
     outputFile.open(outputFileName, ios::app);
     cout<<"Scheduling Method: Shortest Job First - Non-Preemptive"<<endl;
     outputFile<<"Scheduling Method: Shortest Job First - Non-Preemptive"<<endl;
     cout<<"Process Waiting Times:"<<endl;
     outputFile<<"Process Waiting Times:"<<endl;
-    for (int i = 0; i < processesCount; i++){
+    for (int i = 0; i < numberOfProcesses; i++){
         cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
         outputFile<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
     }
@@ -459,40 +456,40 @@ void shortest_job_first_nonPreemptive(Process myProcesses[], int processesCount)
     outputFile.close();
 
 }
-void shortest_job_first_Preemptive(Process myProcesses[], int processesCount, int totalBurstTime){
-    int currentTime = 0;
+void shortest_job_first_Preemptive(Process myProcesses[], int numberOfProcesses, int totalBurstTime){
+    int clockTime = 0;
     total_wait_time = 0;
-    struct Process processesToExecute [processesCount];
-    for (int i = 0; i < processesCount; i++) {
+    struct Process processesToExecute [numberOfProcesses];
+    for (int i = 0; i < numberOfProcesses; i++) {
         processesToExecute[i].burst_time = myProcesses[i].burst_time;
         processesToExecute[i].arrival_time = myProcesses[i].arrival_time;
         processesToExecute[i].priority = myProcesses[i].priority;
     }
-    int index = getShortestProcAvailable(processesToExecute, processesCount, currentTime);
-    while (currentTime < totalBurstTime){
+    int index = getShortestProcAvailable(processesToExecute, numberOfProcesses, clockTime);
+    while (clockTime < totalBurstTime){
         if (index != -1){
             processesToExecute[index].burst_time--;
             if (processesToExecute[index].burst_time == 0){
-                processesToExecute[index].stop_time = currentTime;
+                processesToExecute[index].stop_time = clockTime;
             }
-            for (int i = 0; i < processesCount; i++) {
-                if ((i != index) && (processesToExecute[i].arrival_time <= currentTime) && (processesToExecute[i].burst_time > 0)){
+            for (int i = 0; i < numberOfProcesses; i++) {
+                if ((i != index) && (processesToExecute[i].arrival_time <= clockTime) && (processesToExecute[i].burst_time > 0)){
                     processesToExecute[i].wait_time++;
                 }
             }
         }
-        currentTime++;
-        index = getShortestProcAvailable(processesToExecute, processesCount, currentTime);
+        clockTime++;
+        index = getShortestProcAvailable(processesToExecute, numberOfProcesses, clockTime);
     }
-    for (int i = 0; i < processesCount; i++)
+    for (int i = 0; i < numberOfProcesses; i++)
         total_wait_time += processesToExecute[i].wait_time;
-    avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
+    avg_wait_time = static_cast<double>(total_wait_time)/numberOfProcesses;
     outputFile.open(outputFileName, ios::app);
     cout<<"Scheduling Method: Shortest Job First - Preemptive"<<endl;
     outputFile<<"Scheduling Method: Shortest Job First - Preemptive"<<endl;
     cout<<"Process Waiting Times:"<<endl;
     outputFile<<"Process Waiting Times:"<<endl;
-    for (int i = 0; i < processesCount; i++){
+    for (int i = 0; i < numberOfProcesses; i++){
         cout<<"P"<<i+1<<": "<<processesToExecute[i].wait_time<<" ms"<<endl;
         outputFile<<"P"<<i+1<<": "<<processesToExecute[i].wait_time<<" ms"<<endl;
     }
@@ -501,33 +498,33 @@ void shortest_job_first_Preemptive(Process myProcesses[], int processesCount, in
     outputFile.close();
 }
 
-void priority_nonPreemptive(Process myProcesses[], int processesCount){
-    int currentTime = 0;
-    bubbleSort_priority(myProcesses, processesCount, currentTime, -1);
+void priority_nonPreemptive(Process myProcesses[], int numberOfProcesses){
+    int clockTime = 0;
+    bubbleSort_priority(myProcesses, numberOfProcesses, clockTime, -1);
     total_wait_time = 0;
     Process running_Process;
-    for (int i = 0; i < processesCount; i++) {
+    for (int i = 0; i < numberOfProcesses; i++) {
         running_Process = myProcesses[i];
-        currentTime += running_Process.burst_time;
-        for (int j = 0; j < processesCount; j++) {
+        clockTime += running_Process.burst_time;
+        for (int j = 0; j < numberOfProcesses; j++) {
             if (i != j)
                 myProcesses[j].wait_time += running_Process.burst_time;
         }
         myProcesses[i].stop_time = myProcesses[i].wait_time;
-        bubbleSort_priority(myProcesses, processesCount, currentTime, i);
+        bubbleSort_priority(myProcesses, numberOfProcesses, clockTime, i);
     }
-    for (int i = 0; i < processesCount; i++)
+    for (int i = 0; i < numberOfProcesses; i++)
         myProcesses[i].wait_time = myProcesses[i].stop_time - myProcesses[i].arrival_time;
-    bubbleSort_processNo(myProcesses, processesCount);
-    for (int i = 0; i < processesCount; i++)
+    bubbleSort_processNo(myProcesses, numberOfProcesses);
+    for (int i = 0; i < numberOfProcesses; i++)
         total_wait_time += myProcesses[i].wait_time;
-    avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
+    avg_wait_time = static_cast<double>(total_wait_time)/numberOfProcesses;
     outputFile.open(outputFileName, ios::app);
     cout<<"Scheduling Method: Priority Scheduling - Non-Preemptive"<<endl;
     outputFile<<"Scheduling Method: Priority Scheduling - Non-Preemptive"<<endl;
     cout<<"Process Waiting Times:"<<endl;
     outputFile<<"Process Waiting Times:"<<endl;
-    for (int i = 0; i < processesCount; i++){
+    for (int i = 0; i < numberOfProcesses; i++){
         cout<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
         outputFile<<"P"<<i+1<<": "<<myProcesses[i].wait_time<<" ms"<<endl;
     }
@@ -535,40 +532,40 @@ void priority_nonPreemptive(Process myProcesses[], int processesCount){
     outputFile<<"Average Waiting Time: "<<avg_wait_time<<" ms"<<endl;
     outputFile.close();
 }
-void priority_Preemptive(Process myProcesses[], int processesCount, int totalBurstTime){
-    int currentTime = 0;
+void priority_Preemptive(Process myProcesses[], int numberOfProcesses, int totalBurstTime){
+    int clockTime = 0;
     total_wait_time = 0;
-    struct Process processesToExecute [processesCount];
-    for (int i = 0; i < processesCount; i++) {
+    struct Process processesToExecute [numberOfProcesses];
+    for (int i = 0; i < numberOfProcesses; i++) {
         processesToExecute[i].burst_time = myProcesses[i].burst_time;
         processesToExecute[i].arrival_time = myProcesses[i].arrival_time;
         processesToExecute[i].priority = myProcesses[i].priority;
     }
-    int index = getHighPriorityIndex(processesToExecute, processesCount, currentTime);
-    while (currentTime < totalBurstTime){
-        if (index != -1){
-            processesToExecute[index].burst_time--;
-            if (processesToExecute[index].burst_time == 0){
-                processesToExecute[index].stop_time = currentTime;
+    int highPriorityIndex = getHighPriorityIndex(processesToExecute, numberOfProcesses, clockTime);
+    while (clockTime < totalBurstTime){
+        if (highPriorityIndex != -1){
+            processesToExecute[highPriorityIndex].burst_time--;
+            if (processesToExecute[highPriorityIndex].burst_time == 0){
+                processesToExecute[highPriorityIndex].stop_time = clockTime;
             }
-            for (int i = 0; i < processesCount; i++) {
-                if ((i != index) && (processesToExecute[i].arrival_time <= currentTime) && (processesToExecute[i].burst_time > 0)){
+            for (int i = 0; i < numberOfProcesses; i++) {
+                if ((i != highPriorityIndex) && (processesToExecute[i].arrival_time <= clockTime) && (processesToExecute[i].burst_time > 0)){
                     processesToExecute[i].wait_time++;
                 }
             }
         }
-        currentTime++;
-        index = getHighPriorityIndex(processesToExecute, processesCount, currentTime);
+        clockTime++;
+        highPriorityIndex = getHighPriorityIndex(processesToExecute, numberOfProcesses, clockTime);
     }
-    for (int i = 0; i < processesCount; i++)
+    for (int i = 0; i < numberOfProcesses; i++)
         total_wait_time += processesToExecute[i].wait_time;
-    avg_wait_time = static_cast<double>(total_wait_time)/processesCount;
+    avg_wait_time = static_cast<double>(total_wait_time)/numberOfProcesses;
     outputFile.open(outputFileName, ios::app);
     cout<<"Scheduling Method: Priority Scheduling - Preemptive"<<endl;
     outputFile<<"Scheduling Method: Priority Scheduling - Preemptive"<<endl;
     cout<<"Process Waiting Times:"<<endl;
     outputFile<<"Process Waiting Times:"<<endl;
-    for (int i = 0; i < processesCount; i++){
+    for (int i = 0; i < numberOfProcesses; i++){
         cout<<"P"<<i+1<<": "<<processesToExecute[i].wait_time<<" ms"<<endl;
         outputFile<<"P"<<i+1<<": "<<processesToExecute[i].wait_time<<" ms"<<endl;
     }
