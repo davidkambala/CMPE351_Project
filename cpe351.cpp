@@ -98,7 +98,6 @@ int main(int argc, char* argv[]) {
             }
             i++;
         }
-        myProcesses[index].process_no = index + 1;
         index++;
     }
     inputFile.clear();
@@ -108,6 +107,18 @@ int main(int argc, char* argv[]) {
         totalBurstTime += myProcesses[i].burst_time;
     }
     cout<<"Total burst time: "<<totalBurstTime<<endl;
+    //IN CASE PROCESSES ARE OUT OF ORDER WITH RESPECT TO BURST TIME 
+    for (int i = 0; i < count-1; i++) {
+        for (int j = 0; j < count-i-1; j++) {
+            if (myProcesses[j].arrival_time > myProcesses[j+1].arrival_time){
+                swap(myProcesses[j], myProcesses[j+1]);
+            }
+        }
+    }
+    for (int i = 0; i < count; i++) {
+        myProcesses[i].process_no = i+1;
+    }
+    
 
     int choice_simulator, method_choice = 1, time_quantum = 2;
     bool preemptive = true;
