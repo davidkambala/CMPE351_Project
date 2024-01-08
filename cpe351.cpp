@@ -235,6 +235,7 @@ int main(int argc, char* argv[]) {
         cin>>choice_simulator;
     }
     inputFile.close();
+    cout<<"Goodbye"<<endl;
     return 0;
 }
 
@@ -349,18 +350,19 @@ void first_come(Process myProcesses[], int totalBurstTime, int numberOfProcesses
     int executedProcessIndex = 0;
     total_wait_time = 0;
     int elapsed_Time = totalBurstTime;
-    int sched_queue_burst[numberOfProcesses];
-    for (int i = 0; i < numberOfProcesses; i++)
-        sched_queue_burst[i] = myProcesses[i].burst_time;
+    int clockTime = 0;
+    Process FCFS_Sched = myProcesses[executedProcessIndex];
     while (elapsed_Time != 0){
-        if(sched_queue_burst[executedProcessIndex] == 0){
+        if(FCFS_Sched.burst_time == 0 && myProcesses[executedProcessIndex+1].arrival_time <= clockTime){
             executedProcessIndex++;
+            FCFS_Sched = myProcesses[executedProcessIndex];
         }
         for (int i = executedProcessIndex+1; i < numberOfProcesses; i++) {
             myProcesses[i].wait_time++;
         }
-        sched_queue_burst[executedProcessIndex]--;
+        FCFS_Sched.burst_time--;
         elapsed_Time--;
+        clockTime++;
     }
     for (int i = 0; i < numberOfProcesses; i++)
         myProcesses[i].wait_time -= myProcesses[i].arrival_time;
