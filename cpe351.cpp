@@ -349,19 +349,21 @@ int getHighPriorityIndex(Process myProcesses[], int numberOfProcesses, int clock
 void first_come(Process myProcesses[], int totalBurstTime, int numberOfProcesses){
     int executedProcessIndex = 0;
     total_wait_time = 0;
-    int elapsed_Time = totalBurstTime;
+    int schedulingTime = totalBurstTime;
     int clockTime = 0;
     Process FCFS_Sched = myProcesses[executedProcessIndex];
-    while (elapsed_Time != 0){
+    while (schedulingTime != 0){
         if(FCFS_Sched.burst_time == 0 && myProcesses[executedProcessIndex+1].arrival_time <= clockTime){
             executedProcessIndex++;
             FCFS_Sched = myProcesses[executedProcessIndex];
         }
-        for (int i = executedProcessIndex+1; i < numberOfProcesses; i++) {
-            myProcesses[i].wait_time++;
+        if (FCFS_Sched.burst_time != 0){
+            for (int i = executedProcessIndex+1; i < numberOfProcesses; i++) {
+                myProcesses[i].wait_time++;
+            }
+            FCFS_Sched.burst_time--;
+            schedulingTime--;
         }
-        FCFS_Sched.burst_time--;
-        elapsed_Time--;
         clockTime++;
     }
     for (int i = 0; i < numberOfProcesses; i++)
